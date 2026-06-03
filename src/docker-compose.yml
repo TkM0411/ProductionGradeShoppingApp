@@ -1,0 +1,15 @@
+name: retail-sample
+networks:
+  default:
+    name: retail-sample_defaultnw
+services:
+  cart:
+  carts-db:
+  catalog:
+  catalog-db:
+  checkout:
+  checkout-redis:
+  orders:
+  orders-db:
+  rabbitmq:
+  ui:
