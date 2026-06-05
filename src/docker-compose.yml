@@ -135,6 +135,73 @@ services:
     tmpfs:
       - /tmp:rw,noexec,nosuid
     image: public.ecr.aws/aws-containers/retail-store-sample-checkout:1.3.0
+  catalog-db:
+    environment:
+      - reschedule=on-node-failure
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+      - MYSQL_ALLOW_EMPTY_PASSWORD=true
+      - MYSQL_DATABASE=catalogdb
+      - MYSQL_USER=catalog_user
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+    healthcheck:
+      interval: 10s
+      retries: 3
+      start_period: 30s
+      test:
+        - CMD
+        - mysqladmin
+        - ping
+        - -h
+        - localhost
+        - -u
+        - catalog_user
+        - -p${DB_PASSWORD}
+      timeout: 5s
+    hostname: catalog-db
+    image: mariadb:13.0
+    # To attach to the default network specified at the compose file level.
+    networks:
+      default: null
+    # To restart the container always in case of any failure.
+    restart: always
+    # To secure the container, no new privileges are allowed in the container.
+    security_opt:
+      - no-new-privileges:true
+  catalog:
+    # Removing any other linux capabilities to lock down the container for security.
+    cap_drop:
+      - all
+    # Added explicit dependency on catalog-db healthy container.
+    depends_on:
+      catalog-db:
+        condition: service_healthy
+        required: true
+        restart: true
+    environment:
+      - GIN_MODE=release
+      - reschedule=on-node-failure
+      - RETAIL_CATALOG_PERSISTENCE_PROVIDER=mysql
+      - RETAIL_CATALOG_PERSISTENCE_PASSWORD=${DB_PASSWORD}
+      - RETAIL_CATALOG_PERSISTENCE_ENDPOINT=catalog-db:3306
+    healthcheck:
+      interval: 10s
+      retries: 3
+      test:
+        - CMD-SHELL
+        - curl -f http://localhost:8080/health || exit 1
+      timeout: 10s
+    hostname: catalog
+    networks:
+    # To attach to the default network specified at the compose file level.
+      default: null
+    # To ensure that the container is accessible only within the Docker network, we provide the ports as empty list.
+    ports: []
+    # To restart the container always in case of any failure.
+    restart: always
+    # To secure the container, no new privileges are allowed in the container.
+    security_opt:
+      - no-new-privileges:true
+    image: public.ecr.aws/aws-containers/retail-store-sample-catalog:1.3.0
   orders-db:
     environment:
       - reschedule=on-node-failure
@@ -194,8 +261,8 @@ services:
         - curl -f http://localhost:8080/actuator/health || exit 1
       timeout: 10s
     hostname: orders
-    # To attach to the default network specified at the compose file level.
     networks:
+    # To attach to the default network specified at the compose file level.
       default: null
     # To ensure that the container is accessible only within the Docker network, we provide the ports as empty list.
     ports: []
@@ -216,8 +283,8 @@ services:
       - RABBITMQ_DEFAULT_PASS=${DB_PASSWORD}
     hostname: rabbitmq
     image: rabbitmq:4.3.1-management-alpine
-    # To attach to the default network specified at the compose file level.
     networks:
+    # To attach to the default network specified at the compose file level.
       default: null
     # To ensure that the container is accessible only within the Docker network, we provide the ports as empty list.
     ports: []
@@ -266,8 +333,8 @@ services:
     hostname: ui
     # Placing the memory limit on the container to use 512 MB.
     mem_limit: 512m
-    # To attach to the default network specified at the compose file level.
     networks:
+    # To attach to the default network specified at the compose file level.
       default: null
     # Exposing the UI via Port 8888 on Host Machine by mapping to Container Port 8080
     ports:
