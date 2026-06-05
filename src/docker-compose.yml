@@ -336,11 +336,11 @@ services:
     networks:
     # To attach to the default network specified at the compose file level.
       default: null
-    # Exposing the UI via Port 8888 on Host Machine by mapping to Container Port 8080
+    # Exposing the UI via Port 80 on Host Machine by mapping to Container Port 8080
     ports:
       - mode: ingress
         protocol: tcp
-        published: "8888"
+        published: 80
         target: 8080
     # To restart the container always in case of any failure.
     restart: always
