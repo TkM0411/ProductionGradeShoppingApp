@@ -22,7 +22,7 @@ services:
       timeout: 15s
     # To set hostname of container to carts-db.
     hostname: carts-db
-    image: amazon/dynamodb-local:3.3.0
+    image: amazon/dynamodb-local:1.20.0
     networks:
     # To attach to the default network specified at the compose file level.
       default: null
@@ -97,7 +97,7 @@ services:
     ports: []
     # To restart the container always in case of any failure.
     restart: always
-    image: redis:8.6.4-alpine
+    image: redis:6.0-alpine
   checkout:
     # Adding the below extra linux capabilities so that the container can bind to port numbers less than 1024.
     cap_add:
@@ -282,7 +282,7 @@ services:
       - RABBITMQ_DEFAULT_USER=rabbitmq
       - RABBITMQ_DEFAULT_PASS=${DB_PASSWORD}
     hostname: rabbitmq
-    image: rabbitmq:4.3.1-management-alpine
+    image: rabbitmq:3-management
     networks:
     # To attach to the default network specified at the compose file level.
       default: null
