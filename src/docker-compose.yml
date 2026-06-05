@@ -158,7 +158,7 @@ services:
         - -p${DB_PASSWORD}
       timeout: 5s
     hostname: catalog-db
-    image: mariadb:13.0-rc
+    image: mariadb:10.9
     # To attach to the default network specified at the compose file level.
     networks:
       default: null
